@@ -22,7 +22,11 @@ namespace TodoAppMVC.Controllers
         // GET: TodoItems
         public async Task<IActionResult> Index()
         {
-            return View(await _context.TodoItems.ToListAsync());
+            var items = await _context.TodoItems
+                .OrderByDescending(t => t.Id)
+                .ToListAsync();
+
+            return View(items);
         }
 
         // GET: TodoItems/Details/5
@@ -54,10 +58,11 @@ namespace TodoAppMVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,IsCompleted")] TodoItem todoItem)
+        public async Task<IActionResult> Create([Bind("Id,Title,Description")] TodoItem todoItem)
         {
             if (ModelState.IsValid)
             {
+                todoItem.IsCompleted = false;
                 _context.Add(todoItem);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -86,7 +91,7 @@ namespace TodoAppMVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,IsCompleted")] TodoItem todoItem)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,IsCompleted")] TodoItem todoItem)
         {
             if (id != todoItem.Id)
             {
@@ -146,6 +151,19 @@ namespace TodoAppMVC.Controllers
             }
 
             await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkDone(int id)
+        {
+            var item = await _context.TodoItems.FindAsync(id);
+            if (item == null) return NotFound();
+
+            item.IsCompleted = true;
+            await _context.SaveChangesAsync();
+
+            // После выполнения перенаправляем обратно на Index, чтобы обновить страницу
             return RedirectToAction(nameof(Index));
         }
 
