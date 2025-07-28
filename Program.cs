@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using TodoAppMVC.Data;
+
 namespace TodoAppMVC
 {
     public class Program
@@ -5,6 +8,9 @@ namespace TodoAppMVC
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -28,7 +34,7 @@ namespace TodoAppMVC
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=TodoItems}/{action=Index}/{id?}");
 
             app.Run();
         }
